@@ -8,7 +8,7 @@ platform :android do
       service_credentials_file: ENV["FIREBASE_CREDENTIALS_FILE"], # JSON из секрета GitHub
       android_artifact_type: "APK",                              # или "AAB"
       android_artifact_path: ENV["APK_PATH"] || "../app/build/outputs/apk/release/app-release.apk",
-      groups: "qa-team, beta-testers",
+      groups: "qa-team, 
       release_notes: "CI build ##{ENV['GITHUB_RUN_NUMBER']} (#{ENV['GITHUB_SHA']})"
     )
   end
