@@ -4,7 +4,7 @@ platform :android do
   desc "Deploy to Firebase App Distribution"
   lane :distribute do
     firebase_app_distribution(
-      app: ENV["1:106963353942:android:9a42f6ec9e2638ec8256f7"],                               # 1:XXXXXXXXXXXX:android:XXXXXXXX
+      app: "1:106963353942:android:9a42f6ec9e2638ec8256f7",
       service_credentials_file: ENV["FIREBASE_CREDENTIALS_FILE"], # JSON из секрета GitHub
       android_artifact_type: "APK",                              # или "AAB"
       android_artifact_path: ENV["APK_PATH"] || "../app/build/outputs/apk/release/app-release.apk",
