@@ -20,7 +20,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.authfeature"
+        applicationId = "com.example.auth"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
