@@ -1,0 +1,22 @@
+# Gradle / сборка
+.gradle/
+build/
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+
+# Локальные пути SDK — ВСЕГДА в .gitignore
+local.properties
+
+# Секреты подписи и сервисов — никогда в git
+*.jks
+*.keystore
+key.properties
+firebase-key.json
+
+# Fastlane
+fastlane/report.xml
+vendor/

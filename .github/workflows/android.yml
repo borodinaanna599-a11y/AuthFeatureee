@@ -1,0 +1,92 @@
+name: Android Build & Distribute
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Получаем код
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Устанавливаем JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # 3. Gradle + кэширование зависимостей (~/.gradle/caches)
+      #    В проекте нет gradlew, поэтому ставим Gradle 8.9 (как в gradle-wrapper.properties)
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      # 4. Модульные тесты
+      - name: Run unit tests
+        run: gradle testDebugUnitTest --no-daemon
+
+      # 5. Подпись: keystore из секрета + key.properties
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > app/keystore.jks
+
+      - name: Create key.properties
+        env:
+          KS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          K_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          K_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          {
+            printf 'storePassword=%s\n' "$KS_PASSWORD"
+            printf 'keyPassword=%s\n' "$K_PASSWORD"
+            printf 'keyAlias=%s\n' "$K_ALIAS"
+            printf 'storeFile=keystore.jks\n'
+          } > key.properties
+
+      # 6. Собираем релизную версию (APK) и Bundle (AAB, задание А)
+      - name: Assemble Release APK
+        run: gradle assembleRelease --no-daemon
+
+      - name: Bundle Release AAB
+        run: gradle bundleRelease --no-daemon
+
+      # 7. Загружаем артефакты для скачивания из вкладки Actions
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: app/build/outputs/bundle/release/app-release.aab
+
+      # 8. Fastlane -> Firebase App Distribution (только для push в main)
+      - name: Set up Ruby
+        if: github.event_name == 'push'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Run Fastlane Distribute
+        if: github.event_name == 'push'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$GITHUB_WORKSPACE/firebase-key.json"
+          export FIREBASE_CREDENTIALS_FILE="$GITHUB_WORKSPACE/firebase-key.json"
+          export APK_PATH="$GITHUB_WORKSPACE/app/build/outputs/apk/release/app-release.apk"
+          bundle exec fastlane distribute

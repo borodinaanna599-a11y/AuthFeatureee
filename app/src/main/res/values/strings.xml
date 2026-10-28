@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Auth Feature</string>
+    <string name="login_title">Вход</string>
+    <string name="email">Email</string>
+    <string name="password">Пароль</string>
+    <string name="login_button">Войти</string>
+    <string name="register_title">Регистрация</string>
+    <string name="confirm_password">Повторите пароль</string>
+    <string name="register_button">Зарегистрироваться</string>
+    <string name="go_to_register">Нет аккаунта? Зарегистрироваться</string>
+    <string name="go_to_login">Уже есть аккаунт? Войти</string>
+    <string name="logout_button">Выйти</string>
+    <string name="notes_title">Заметки</string>
+    <string name="notes_empty">Заметок пока нет. Нажмите «+», чтобы добавить</string>
+    <string name="add_note">Добавить заметку</string>
+    <string name="delete_note">Удалить заметку</string>
+    <string name="new_note">Новая заметка</string>
+    <string name="note_title">Заголовок</string>
+    <string name="note_content">Текст заметки</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="error_empty_title">Введите заголовок заметки</string>
+    <string name="error_empty_content">Введите текст заметки</string>
+    <string name="error_sync_network">Не удалось синхронизировать заметки. Проверьте интернет</string>
+    <string name="error_invalid_email">Введите корректный email</string>
+    <string name="error_empty_password">Введите пароль</string>
+    <string name="error_invalid_credentials">Неверный email или пароль</string>
+    <string name="error_password_too_short">Пароль должен быть не короче 6 символов</string>
+    <string name="error_passwords_mismatch">Пароли не совпадают</string>
+    <string name="error_email_exists">Этот email уже зарегистрирован</string>
+    <string name="error_network">Нет соединения с сетью. Проверьте интернет и повторите попытку</string>
+    <string name="error_unknown">Что-то пошло не так. Попробуйте позже</string>
+</resources>
