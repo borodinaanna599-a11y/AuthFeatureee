@@ -5,10 +5,10 @@ platform :android do
   lane :distribute do
     firebase_app_distribution(
       app: "1:106963353942:android:9a42f6ec9e2638ec8256f7",
-      service_credentials_file: ENV["FIREBASE_CREDENTIALS_FILE"], # JSON из секрета GitHub
-      android_artifact_type: "APK",                              # или "AAB"
+      service_credentials_file: ENV["FIREBASE_CREDENTIALS_FILE"],
+      android_artifact_type: "APK",
       android_artifact_path: ENV["APK_PATH"] || "../app/build/outputs/apk/release/app-release.apk",
-      groups: "qa-team, 
+      groups: "qa-team",
       release_notes: "CI build ##{ENV['GITHUB_RUN_NUMBER']} (#{ENV['GITHUB_SHA']})"
     )
   end
