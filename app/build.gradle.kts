@@ -1,3 +1,4 @@
+
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,29 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+}
+
+fun getCommitCount(): Int {
+    return try {
+        val process = ProcessBuilder(
+            "git", "rev-list", "--count", "HEAD"
+        )
+            .directory(rootProject.projectDir)
+            .redirectErrorStream(true)
+            .start()
+
+        val count = process.inputStream
+            .bufferedReader()
+            .readText()
+            .trim()
+
+        process.waitFor()
+        count.toInt().coerceAtLeast(1)
+    } catch (e: Exception) {
+        1
+    }
 }
 
 android {
@@ -16,15 +40,18 @@ android {
         applicationId = "com.example.authfeature"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = getCommitCount()
+        versionName = "2.1.${getCommitCount()}"
     }
 
-    // Параметры подписи читаются из key.properties (в репозитории его нет —
-    // файл создаётся локально или на CI из секретов)
+    // Параметры подписи из key.properties
     val keystorePropsFile = rootProject.file("key.properties")
     val keystoreProps = Properties().apply {
-        if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+        if (keystorePropsFile.exists()) {
+            keystorePropsFile.inputStream().use {
+                load(it)
+            }
+        }
     }
 
     signingConfigs {
@@ -40,33 +67,37 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
         }
+
         release {
-            isMinifyEnabled = true      // R8: shrinking + obfuscation
-            isShrinkResources = true    // удаление неиспользуемых ресурсов
+            isMinifyEnabled = true
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // без key.properties (локальная сборка) подписываем debug-ключом,
-            // чтобы assembleRelease не падал
-            signingConfig = if (keystorePropsFile.exists())
+
+            signingConfig = if (keystorePropsFile.exists()) {
                 signingConfigs.getByName("release")
-            else
+            } else {
                 signingConfigs.getByName("debug")
+            }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
-        buildConfig = true // BuildConfig.DEBUG нужен для настройки Remote Config
+        buildConfig = true
     }
 }
 
@@ -99,7 +130,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
-    // Firebase (ПР №11): Remote Config + Crashlytics
+    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-config")
     implementation("com.google.firebase:firebase-crashlytics")
@@ -108,12 +139,4 @@ dependencies {
     // Tests
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
-}
-
-// Firebase-плагины подключаются, только если рядом лежит google-services.json
-// (в репозитории его нет — на CI он создаётся из секрета GOOGLE_SERVICES_JSON).
-// Без файла проект всё равно собирается, а приложение работает на значениях по умолчанию.
-if (file("google-services.json").exists()) {
-    apply(plugin = "com.google.gms.google-services")
-    apply(plugin = "com.google.firebase.crashlytics")
 }

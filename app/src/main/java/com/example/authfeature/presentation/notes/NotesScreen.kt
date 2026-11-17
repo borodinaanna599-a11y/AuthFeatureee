@@ -98,8 +98,13 @@ fun NotesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddClick) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
+            if (state.isAddNoteEnabled) {
+                FloatingActionButton(onClick = onAddClick) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.add_note)
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -108,7 +113,7 @@ fun NotesScreen(
             if (state.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
-            if (state.welcomeText.isNotBlank()) {
+            if (state.isWelcomeBannerEnabled && state.welcomeText.isNotBlank()) {
                 Text(
                     text = state.welcomeText,
                     style = MaterialTheme.typography.titleMedium,

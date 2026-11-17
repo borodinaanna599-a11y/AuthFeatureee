@@ -44,13 +44,29 @@ class NotesViewModel @Inject constructor(
     }
 
     /** Приветствие из Remote Config: сразу показываем текущее, затем подтягиваем свежее. */
+
     private fun loadWelcomeText() {
-        _uiState.update { it.copy(welcomeText = welcomeConfig.current()) }
+        _uiState.update {
+            it.copy(
+                welcomeText = welcomeConfig.current(),
+                isWelcomeBannerEnabled = welcomeConfig.isWelcomeBannerEnabled(),
+                isAddNoteEnabled = welcomeConfig.isAddNoteEnabled()
+            )
+        }
+
         viewModelScope.launch {
             val fresh = welcomeConfig.refresh()
-            _uiState.update { it.copy(welcomeText = fresh) }
+
+            _uiState.update {
+                it.copy(
+                    welcomeText = fresh,
+                    isWelcomeBannerEnabled = welcomeConfig.isWelcomeBannerEnabled(),
+                    isAddNoteEnabled = welcomeConfig.isAddNoteEnabled()
+                )
+            }
         }
     }
+
 
     /** Подписка на БД: любое изменение таблицы мгновенно попадает в UiState. */
     private fun observeNotes() {
@@ -70,7 +86,13 @@ class NotesViewModel @Inject constructor(
         }
     }
 
-    fun onAddClick() = _uiState.update { it.copy(isAddDialogVisible = true, addNoteError = null) }
+    fun onAddClick() {
+        if (!welcomeConfig.isAddNoteEnabled()) return
+
+        _uiState.update {
+            it.copy(isAddDialogVisible = true, addNoteError = null)
+        }
+    }
 
     fun onDialogDismiss() = _uiState.update { it.copy(isAddDialogVisible = false, addNoteError = null) }
 
