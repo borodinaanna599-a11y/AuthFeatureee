@@ -22,3 +22,5 @@ fastlane/report.xml
 vendor/
 google-services.json
 play-store-key.json
+
+.kotlin/
