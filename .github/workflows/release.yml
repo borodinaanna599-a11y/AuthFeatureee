@@ -1,0 +1,86 @@
+name: Android Release (GitHub Releases)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Run unit tests
+        run: gradle testDebugUnitTest --no-daemon
+
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: bash scripts/bump_version.sh "release/${GITHUB_REF_NAME#v}" "${GITHUB_RUN_NUMBER}"
+
+      # Подпись постоянным ключом включается, если пользователь добавил все секреты.
+      # Без них Gradle использует debug-ключ только для учебного/тестового релиза.
+      - name: Configure release signing (optional)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          K_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          K_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KS_PASSWORD" ] && [ -n "$K_PASSWORD" ] && [ -n "$K_ALIAS" ]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/keystore.jks
+            {
+              printf 'storePassword=%s\n' "$KS_PASSWORD"
+              printf 'keyPassword=%s\n' "$K_PASSWORD"
+              printf 'keyAlias=%s\n' "$K_ALIAS"
+              printf 'storeFile=keystore.jks\n'
+            } > key.properties
+          else
+            echo 'Signing secrets are incomplete; building a test APK with the debug key.'
+          fi
+
+      - name: Create Firebase configuration (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          else
+            echo 'GOOGLE_SERVICES_JSON is not set; Firebase integration will use app defaults.'
+          fi
+
+      - name: Build release APK
+        run: gradle assembleRelease --no-daemon
+
+      - name: Build release AAB
+        run: gradle bundleRelease --no-daemon
+
+      - name: Upload AAB as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: authfeature-release-aab
+          path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Publish APK on GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
+          fail_on_unmatched_files: true

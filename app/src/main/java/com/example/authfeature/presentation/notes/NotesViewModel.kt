@@ -3,6 +3,7 @@ package com.example.authfeature.presentation.notes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.authfeature.R
+import com.example.authfeature.data.remote.WelcomeConfig
 import com.example.authfeature.domain.model.Note
 import com.example.authfeature.domain.model.NoteError
 import com.example.authfeature.domain.usecase.AddNoteUseCase
@@ -26,7 +27,8 @@ class NotesViewModel @Inject constructor(
     private val getNotes: GetNotesUseCase,
     private val addNote: AddNoteUseCase,
     private val deleteNote: DeleteNoteUseCase,
-    private val syncNotes: SyncNotesUseCase
+    private val syncNotes: SyncNotesUseCase,
+    private val welcomeConfig: WelcomeConfig
 ) : ViewModel() {
 
     // Private mutable state
@@ -38,6 +40,16 @@ class NotesViewModel @Inject constructor(
     init {
         observeNotes()
         loadNotes()
+        loadWelcomeText()
+    }
+
+    /** Приветствие из Remote Config: сразу показываем текущее, затем подтягиваем свежее. */
+    private fun loadWelcomeText() {
+        _uiState.update { it.copy(welcomeText = welcomeConfig.current()) }
+        viewModelScope.launch {
+            val fresh = welcomeConfig.refresh()
+            _uiState.update { it.copy(welcomeText = fresh) }
+        }
     }
 
     /** Подписка на БД: любое изменение таблицы мгновенно попадает в UiState. */

@@ -9,5 +9,6 @@ data class NotesUiState(
     val notes: List<Note> = emptyList(),
     val errorMessage: UiText? = null,
     val isAddDialogVisible: Boolean = false,
-    val addNoteError: UiText? = null
+    val addNoteError: UiText? = null,
+    val welcomeText: String = ""
 )

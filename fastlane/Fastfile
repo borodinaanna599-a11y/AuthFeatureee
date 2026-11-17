@@ -4,12 +4,39 @@ platform :android do
   desc "Deploy to Firebase App Distribution"
   lane :distribute do
     firebase_app_distribution(
-      app: "1:106963353942:android:9a42f6ec9e2638ec8256f7",
-      service_credentials_file: ENV["FIREBASE_CREDENTIALS_FILE"],
-      android_artifact_type: "APK",
+      app: ENV["FIREBASE_APP_ID"],                               # 1:XXXXXXXXXXXX:android:XXXXXXXX
+      service_credentials_file: ENV["FIREBASE_CREDENTIALS_FILE"], # JSON из секрета GitHub
+      android_artifact_type: "APK",                              # или "AAB"
       android_artifact_path: ENV["APK_PATH"] || "../app/build/outputs/apk/release/app-release.apk",
-      groups: "qa-team",
+      groups: "qa-team, beta-testers",
       release_notes: "CI build ##{ENV['GITHUB_RUN_NUMBER']} (#{ENV['GITHUB_SHA']})"
+    )
+  end
+
+  desc "Upload AAB to Google Play Internal testing"
+  lane :internal do
+    upload_to_play_store(
+      track: "internal",
+      aab: ENV["AAB_PATH"] || "../app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"] # секрет GitHub
+    )
+  end
+
+  desc "Promote Internal -> Production (staged rollout 1%)"
+  lane :promote_prod do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      rollout: "0.01", # 0.01 = 1% аудитории (1.0 = 100%!)
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
     )
   end
 end

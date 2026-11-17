@@ -108,6 +108,13 @@ fun NotesScreen(
             if (state.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
+            if (state.welcomeText.isNotBlank()) {
+                Text(
+                    text = state.welcomeText,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                )
+            }
             if (state.notes.isEmpty() && !state.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(stringResource(R.string.notes_empty))
