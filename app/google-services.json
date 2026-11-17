@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1009888640576",
+    "project_id": "authfeatureee",
+    "storage_bucket": "authfeatureee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009888640576:android:665bb419e5d162503229a5",
+        "android_client_info": {
+          "package_name": "com.example.authfeature"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbFTYryyXelzy9eCU6XHTtQUVNE-e4fZo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
